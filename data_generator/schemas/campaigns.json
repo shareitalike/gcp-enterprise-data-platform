@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "campaigns/1.0",
+  "title": "Campaign",
+  "type": "object",
+  "required": [
+    "campaign_id", "source_campaign_id", "campaign_name",
+    "campaign_type", "channel", "start_date", "end_date",
+    "budget_amount", "spent_amount", "is_active",
+    "created_at", "updated_at", "_schema_version"
+  ],
+  "properties": {
+    "campaign_id":        { "type": "string", "pattern": "^[0-9a-f-]{36}$" },
+    "source_campaign_id": { "type": "string", "minLength": 1 },
+    "campaign_name":      { "type": "string", "minLength": 1 },
+    "campaign_type":      { "type": "string", "enum": ["EMAIL", "SMS", "PAID_SEARCH", "DISPLAY", "SOCIAL"] },
+    "channel":            { "type": "string", "minLength": 1 },
+    "start_date":         { "type": "string", "format": "date" },
+    "end_date":           { "type": "string", "format": "date" },
+    "budget_amount":      { "type": "number", "exclusiveMinimum": 0 },
+    "spent_amount":       { "type": "number", "minimum": 0 },
+    "target_segment":     { "type": ["string", "null"] },
+    "is_active":          { "type": "boolean" },
+    "created_at":         { "type": "string", "format": "date-time" },
+    "updated_at":         { "type": "string", "format": "date-time" },
+    "_schema_version":    { "type": "string" }
+  },
+  "additionalProperties": false
+}

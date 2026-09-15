@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "order_items/1.0",
+  "title": "OrderItem",
+  "type": "object",
+  "required": [
+    "order_item_id", "order_id", "product_id", "quantity",
+    "unit_price", "line_total", "discount_amount",
+    "return_quantity", "_schema_version"
+  ],
+  "properties": {
+    "order_item_id":   { "type": "string", "pattern": "^[0-9a-f-]{36}$" },
+    "order_id":        { "type": "string", "pattern": "^[0-9a-f-]{36}$" },
+    "product_id":      { "type": "string", "pattern": "^[0-9a-f-]{36}$" },
+    "quantity":        { "type": "integer", "minimum": 1 },
+    "unit_price":      { "type": "number", "exclusiveMinimum": 0 },
+    "line_total":      { "type": "number", "exclusiveMinimum": 0 },
+    "discount_amount": { "type": "number", "minimum": 0 },
+    "return_quantity": { "type": "integer", "minimum": 0 },
+    "return_reason":   { "type": ["string", "null"] },
+    "_schema_version": { "type": "string" }
+  },
+  "additionalProperties": false
+}

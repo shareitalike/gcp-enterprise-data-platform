@@ -1,0 +1,84 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Project B (Analytics) — dev environment configuration
+# ─────────────────────────────────────────────────────────────────────────────
+
+environment: analytics-dev
+
+project:
+  analytics_project_id: "${ANALYTICS_PROJECT_ID}"   # injected from .env or CI
+  region: us-central1
+  zone: us-central1-a
+
+bigquery:
+  location: US
+  datasets:
+    bronze:
+      name: bronze
+      description: "Immutable raw landing tables loaded from Project A GCS"
+      default_table_expiration_ms: null     # retained; no expiry
+      default_partition_expiration_ms: null
+    silver:
+      name: silver
+      description: "Validated, typed, deduplicated tables"
+      default_table_expiration_ms: null
+    silver_quarantine:
+      name: silver_quarantine
+      description: "Records failing Silver validation; reviewed and reprocessed or discarded"
+      default_table_expiration_ms: 2592000000   # 30 days in ms
+    gold:
+      name: gold
+      description: "Business-ready dimensional models and fact tables"
+      default_table_expiration_ms: null
+    control:
+      name: control
+      description: "File manifests, idempotency tracking, pipeline state"
+      default_table_expiration_ms: null
+    audit:
+      name: audit
+      description: "Pipeline run records, record counts, duration, status"
+      default_table_expiration_ms: null
+    quality:
+      name: quality
+      description: "Data quality check results"
+      default_table_expiration_ms: null
+
+service_accounts:
+  ingestion_sa: "analytics-ingestion-sa"
+  streaming_sa: "analytics-streaming-sa"
+  deploy_sa: "analytics-deploy-sa"
+
+pubsub:
+  # Subscriptions owned by Project B; pull from Project A topics
+  subscriptions:
+    - name: orders-created-sub
+      topic_project: "${INGESTION_PROJECT_ID}"
+      topic: orders-created
+      ack_deadline_seconds: 60
+      message_retention_duration: "604800s"
+      dead_letter_topic: "projects/${ANALYTICS_PROJECT_ID}/topics/dlq-analytics-dev"
+      dead_letter_max_delivery_attempts: 5
+    - name: clickstream-events-sub
+      topic_project: "${INGESTION_PROJECT_ID}"
+      topic: clickstream-events
+      ack_deadline_seconds: 30
+      message_retention_duration: "604800s"
+      dead_letter_topic: "projects/${ANALYTICS_PROJECT_ID}/topics/dlq-analytics-dev"
+      dead_letter_max_delivery_attempts: 5
+
+dataflow:
+  temp_location: "gs://c360-df-temp-${ANALYTICS_PROJECT_ID}/temp"
+  staging_location: "gs://c360-df-temp-${ANALYTICS_PROJECT_ID}/staging"
+  max_num_workers: 2     # hard cap for dev cost control
+  worker_machine_type: n1-standard-1
+  region: us-central1
+
+pipeline:
+  batch_size: 500
+  max_retries: 3
+  retry_delay_seconds: 30
+  quarantine_on_schema_failure: true
+  quarantine_on_null_key: true
+  halt_on_referential_integrity_failure: false
+
+monitoring:
+  enable_audit_logs: true

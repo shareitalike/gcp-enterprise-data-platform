@@ -1,0 +1,61 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Local development configuration
+# Values here are used when LOCAL_DEV_MODE=true
+# No GCP project IDs or real credentials here — local runners only
+# ─────────────────────────────────────────────────────────────────────────────
+
+environment: local
+
+project:
+  ingestion_project_id: ""    # not used in local mode
+  analytics_project_id: ""    # not used in local mode
+  region: us-central1
+
+data_generator:
+  seed: 42
+  tier: small
+  output_dir: data/generated/small
+  format: json
+  volumes:
+    small:
+      customers: 500
+      products: 200
+      orders: 1000
+      order_items: 2500
+      inventory: 400
+      campaigns: 20
+      clickstream_events: 5000
+    medium:
+      customers: 50000
+      products: 10000
+      orders: 100000
+      order_items: 250000
+      inventory: 20000
+      campaigns: 500
+      clickstream_events: 500000
+
+bigquery:
+  bronze_dataset: bronze
+  silver_dataset: silver
+  gold_dataset: gold
+  control_dataset: control
+  audit_dataset: audit
+  quarantine_dataset: quarantine
+  quality_dataset: quality
+
+gcs:
+  raw_bucket: ""    # not used in local mode
+
+pubsub:
+  orders_topic: orders-created
+  clickstream_topic: clickstream-events
+  orders_subscription: orders-created-sub
+  clickstream_subscription: clickstream-events-sub
+
+pipeline:
+  batch_size: 500
+  max_retries: 3
+  retry_delay_seconds: 30
+  quarantine_on_schema_failure: true
+  quarantine_on_null_key: true
+  halt_on_referential_integrity_failure: false  # warn, not halt, for dev

@@ -1,0 +1,10 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# terraform.tfvars.example — copy to terraform.tfvars and fill in real values.
+# terraform.tfvars is git-ignored.
+# ─────────────────────────────────────────────────────────────────────────────
+
+ingestion_project_id         = "your-ingestion-project-id"
+analytics_ingestion_sa_email = ""   # fill in after analytics-dev stack is applied
+analytics_streaming_sa_email = ""   # fill in after analytics-dev stack is applied
+region                       = "us-central1"
+environment                  = "dev"

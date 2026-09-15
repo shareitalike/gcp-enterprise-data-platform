@@ -1,0 +1,4 @@
+analytics_project_id = "your-analytics-project-id"
+ingestion_project_id = "your-ingestion-project-id"
+region               = "us-central1"
+environment          = "dev"

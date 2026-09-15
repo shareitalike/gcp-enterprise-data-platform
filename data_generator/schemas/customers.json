@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "customers/1.0",
+  "title": "Customer",
+  "description": "Commerce360 customer entity schema v1.0",
+  "type": "object",
+  "required": [
+    "customer_id", "source_customer_id", "email_hash",
+    "first_name", "last_name", "country_code",
+    "signup_date", "customer_segment", "loyalty_points",
+    "is_active", "created_at", "updated_at", "_schema_version"
+  ],
+  "properties": {
+    "customer_id":        { "type": "string", "pattern": "^[0-9a-f-]{36}$" },
+    "source_customer_id": { "type": "string", "minLength": 1 },
+    "email_hash":         { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "first_name":         { "type": "string", "minLength": 1 },
+    "last_name":          { "type": "string", "minLength": 1 },
+    "country_code":       { "type": "string", "pattern": "^[A-Z]{2}$" },
+    "city":               { "type": ["string", "null"] },
+    "signup_date":        { "type": "string", "format": "date" },
+    "customer_segment":   { "type": "string", "enum": ["BRONZE", "SILVER", "GOLD", "PLATINUM"] },
+    "loyalty_points":     { "type": "integer", "minimum": 0 },
+    "is_active":          { "type": "boolean" },
+    "created_at":         { "type": "string", "format": "date-time" },
+    "updated_at":         { "type": "string", "format": "date-time" },
+    "_schema_version":    { "type": "string" }
+  },
+  "additionalProperties": false
+}

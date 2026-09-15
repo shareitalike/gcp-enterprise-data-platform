@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "orders/1.0",
+  "title": "Order",
+  "type": "object",
+  "required": [
+    "order_id", "source_order_id", "customer_id", "order_status",
+    "order_date", "total_amount", "discount_amount", "tax_amount",
+    "currency_code", "channel", "created_at", "updated_at", "_schema_version"
+  ],
+  "properties": {
+    "order_id":         { "type": "string", "pattern": "^[0-9a-f-]{36}$" },
+    "source_order_id":  { "type": "string", "minLength": 1 },
+    "customer_id":      { "type": "string", "pattern": "^[0-9a-f-]{36}$" },
+    "campaign_id":      { "type": ["string", "null"] },
+    "order_status":     { "type": "string", "enum": ["PENDING", "CONFIRMED", "SHIPPED", "DELIVERED", "CANCELLED", "RETURNED"] },
+    "order_date":       { "type": "string", "format": "date-time" },
+    "shipped_date":     { "type": ["string", "null"], "format": "date-time" },
+    "delivered_date":   { "type": ["string", "null"], "format": "date-time" },
+    "total_amount":     { "type": "number", "exclusiveMinimum": 0 },
+    "discount_amount":  { "type": "number", "minimum": 0 },
+    "tax_amount":       { "type": "number", "minimum": 0 },
+    "currency_code":    { "type": "string", "pattern": "^[A-Z]{3}$" },
+    "channel":          { "type": "string", "enum": ["WEB", "MOBILE", "APP"] },
+    "created_at":       { "type": "string", "format": "date-time" },
+    "updated_at":       { "type": "string", "format": "date-time" },
+    "_schema_version":  { "type": "string" }
+  },
+  "additionalProperties": false
+}

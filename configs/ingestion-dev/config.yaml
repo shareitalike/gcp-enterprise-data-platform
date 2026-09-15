@@ -1,0 +1,48 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Project A (Ingestion) — dev environment configuration
+# Terraform reads project_id from here via variable injection; it is NOT
+# hardcoded in any module.
+# ─────────────────────────────────────────────────────────────────────────────
+
+environment: ingestion-dev
+
+project:
+  ingestion_project_id: "${INGESTION_PROJECT_ID}"   # injected from .env or CI
+  region: us-central1
+  zone: us-central1-a
+
+gcs:
+  raw_bucket: "c360-raw-${INGESTION_PROJECT_ID}"
+  location: US
+  storage_class: STANDARD
+  uniform_bucket_level_access: true
+  versioning: false
+  lifecycle_rules:
+    - action: Delete
+      condition:
+        age_days: 90       # raw files deleted after 90 days; Bronze BQ is the queryable copy
+
+pubsub:
+  topics:
+    - name: orders-created
+      message_retention_duration: "604800s"    # 7 days
+      schema_id: orders-created-v1
+    - name: clickstream-events
+      message_retention_duration: "604800s"
+      schema_id: clickstream-events-v1
+  dead_letter_topic: dlq-ingestion-dev
+  dead_letter_max_delivery_attempts: 5
+
+service_accounts:
+  publisher_sa: "synthetic-publisher-sa"
+  description: "Publishes synthetic events to Pub/Sub topics in Project A"
+
+iam:
+  # Project B SA allowed to read GCS objects (set in Phase 4)
+  cross_project_gcs_reader: ""   # filled in after Phase 2
+  # Project B SA allowed to subscribe to topics (set in Phase 7)
+  cross_project_pubsub_subscriber: ""   # filled in after Phase 2
+
+monitoring:
+  enable_audit_logs: true
+  log_bucket: ""    # optional; leave empty to use default _Default log bucket

@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "products/1.0",
+  "title": "Product",
+  "type": "object",
+  "required": [
+    "product_id", "source_product_id", "sku", "product_name",
+    "category_l1", "unit_price", "cost_price",
+    "is_active", "created_at", "updated_at", "_schema_version"
+  ],
+  "properties": {
+    "product_id":        { "type": "string", "pattern": "^[0-9a-f-]{36}$" },
+    "source_product_id": { "type": "string", "minLength": 1 },
+    "sku":               { "type": "string", "minLength": 1 },
+    "product_name":      { "type": "string", "minLength": 1 },
+    "category_l1":       { "type": "string", "minLength": 1 },
+    "category_l2":       { "type": ["string", "null"] },
+    "brand":             { "type": ["string", "null"] },
+    "unit_price":        { "type": "number", "exclusiveMinimum": 0 },
+    "cost_price":        { "type": "number", "exclusiveMinimum": 0 },
+    "is_active":         { "type": "boolean" },
+    "created_at":        { "type": "string", "format": "date-time" },
+    "updated_at":        { "type": "string", "format": "date-time" },
+    "_schema_version":   { "type": "string" }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "inventory/1.0",
+  "title": "Inventory",
+  "type": "object",
+  "required": [
+    "inventory_id", "product_id", "warehouse_id",
+    "quantity_on_hand", "quantity_reserved", "quantity_available",
+    "reorder_level", "snapshot_date", "_schema_version"
+  ],
+  "properties": {
+    "inventory_id":        { "type": "string", "pattern": "^[0-9a-f-]{36}$" },
+    "product_id":          { "type": "string", "pattern": "^[0-9a-f-]{36}$" },
+    "warehouse_id":        { "type": "string", "minLength": 1 },
+    "quantity_on_hand":    { "type": "integer", "minimum": 0 },
+    "quantity_reserved":   { "type": "integer", "minimum": 0 },
+    "quantity_available":  { "type": "integer", "minimum": 0 },
+    "reorder_level":       { "type": "integer", "minimum": 0 },
+    "snapshot_date":       { "type": "string", "format": "date" },
+    "_schema_version":     { "type": "string" }
+  },
+  "additionalProperties": false
+}
