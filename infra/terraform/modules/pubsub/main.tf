@@ -49,10 +49,10 @@ resource "google_pubsub_subscription" "this" {
 # Used to grant cross-project identities (Project B) subscriber access
 # on a Project A topic.
 resource "google_pubsub_topic_iam_member" "members" {
-  for_each = { for b in var.topic_iam_bindings : "${b.role}/${b.member}" => b }
+  count = length(var.topic_iam_bindings)
 
   project = var.project_id
   topic   = google_pubsub_topic.this.name
-  role    = each.value.role
-  member  = each.value.member
+  role    = var.topic_iam_bindings[count.index].role
+  member  = var.topic_iam_bindings[count.index].member
 }

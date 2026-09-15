@@ -34,9 +34,9 @@ resource "google_storage_bucket" "this" {
 # Grant specified identities access to this bucket.
 # Used to give Project B service accounts read access to a Project A bucket.
 resource "google_storage_bucket_iam_member" "members" {
-  for_each = { for binding in var.iam_bindings : "${binding.role}/${binding.member}" => binding }
+  count = length(var.iam_bindings)
 
   bucket = google_storage_bucket.this.name
-  role   = each.value.role
-  member = each.value.member
+  role   = var.iam_bindings[count.index].role
+  member = var.iam_bindings[count.index].member
 }

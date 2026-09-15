@@ -21,10 +21,10 @@ resource "google_bigquery_dataset" "this" {
 
 # ── Dataset-level IAM bindings ────────────────────────────────────────────────
 resource "google_bigquery_dataset_iam_member" "members" {
-  for_each = { for b in var.iam_bindings : "${b.role}/${b.member}" => b }
+  count = length(var.iam_bindings)
 
   project    = var.project_id
   dataset_id = google_bigquery_dataset.this.dataset_id
-  role       = each.value.role
-  member     = each.value.member
+  role       = var.iam_bindings[count.index].role
+  member     = var.iam_bindings[count.index].member
 }

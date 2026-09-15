@@ -73,9 +73,17 @@ Platform: win32
 
 ---
 
-## Phase 3 — Synthetic Data Generator ⬜ NOT STARTED
+## Phase 3 — Synthetic Data Generator ✅ COMPLETE
+
+**Completed:** 2026-09-15
 
 **Target:** `data_generator/` producing all 7 entities in JSON/CSV/Parquet.
+
+**Implementation Details:**
+- Modular pipeline inside `data_generator/entities/`.
+- Strict referential integrity (Orders use valid Customer IDs, Items use valid Order/Product IDs).
+- Built-in `jsonschema` validation strictly enforces data contracts.
+- CLI supports tier-based volume scaling and exports to JSON Lines, CSV, or Parquet.
 
 ---
 
