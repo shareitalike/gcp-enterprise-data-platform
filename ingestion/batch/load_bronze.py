@@ -53,10 +53,8 @@ def main(bucket: str, dataset: str, date: str):
         job_config = bigquery.LoadJobConfig(
             source_format=bigquery.SourceFormat.NEWLINE_DELIMITED_JSON,
             autodetect=True,
-            # For Bronze, we use WRITE_TRUNCATE for full reloads or WRITE_APPEND for appends.
-            # In a real batch pipeline, we'd use WRITE_APPEND with partition filtering, 
-            # but for simplicity of this exercise we'll truncate and replace if running multiple times.
-            write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE,
+            # Use WRITE_APPEND to support incremental loading (Phase 6+)
+            write_disposition=bigquery.WriteDisposition.WRITE_APPEND,
         )
 
         try:

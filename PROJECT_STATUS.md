@@ -114,9 +114,15 @@ Platform: win32
   - `fact_orders`, `fact_inventory_daily`, `fact_clickstream` (Insert/Merge logic)
 - Executed pipelines entirely within BigQuery using the `analytics-ingestion-sa` service account.
 
----
+## Phase 6 — Incremental Batch Processing ✅ COMPLETE
 
-## Phase 6 — Incremental Batch Processing ⬜ NOT STARTED
+**Completed:** 2026-09-15
+
+**Implementation Details:**
+- Modified `ingestion/batch/load_bronze.py` to use `WRITE_APPEND` instead of `WRITE_TRUNCATE`.
+- Generated a "Day 2" batch of synthetic data using `--seed 123`.
+- Uploaded and appended the new logical partition (`dt=2024-01-16`) to the Bronze datasets.
+- Re-ran the Silver and Gold SQL pipelines, which automatically and idempotently merged the new data without duplicating existing records.
 
 ---
 
