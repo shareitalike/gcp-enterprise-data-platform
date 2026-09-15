@@ -63,15 +63,13 @@ Platform: win32
 
 ---
 
-## Phase 2 — GCP Foundation (Terraform) ⬜ NOT STARTED
+## Phase 2 — GCP Foundation (Terraform) ✅ COMPLETE
 
-**Blocked on:** User providing real GCP project IDs and billing account confirmation.
+**Completed:** 2026-09-15
 
-**Target resources:**
-- Project A: GCS raw bucket, publisher SA, IAM
-- Project B: BigQuery datasets (6), analytics SAs (3), IAM
-- Audit log configuration on both projects
-- Budget alert on both projects
+**Deployed resources (100% Free Tier compatible):**
+- Project A (`commerce360-ingest-dev-alvi`): GCS raw bucket, Pub/Sub topics + DLQs, publisher SA, IAM bindings.
+- Project B (`commerce360-analytics-dev-alvi`): BigQuery datasets (bronze, silver, silver_quarantine, gold, audit, control, quality), Dataflow staging bucket, analytics SAs (ingestion, streaming, deploy), Pub/Sub subscriptions, IAM bindings.
 
 ---
 
@@ -137,8 +135,8 @@ See [DESIGN_DECISIONS.md](DESIGN_DECISIONS.md) for full ADR log.
 
 | # | Item | Status |
 |---|---|---|
-| 1 | GCP billing account confirmed | ⬜ Pending user response |
-| 2 | Actual Project A ID | ⬜ Pending user response |
-| 3 | Actual Project B ID | ⬜ Pending user response |
+| 1 | GCP billing account confirmed | ✅ Resolved (`01C28A-FD425B-861407`) |
+| 2 | Actual Project A ID | ✅ Resolved (`commerce360-ingest-dev-alvi`) |
+| 3 | Actual Project B ID | ✅ Resolved (`commerce360-analytics-dev-alvi`) |
 | 4 | GitHub repository URL | ⬜ Pending user response |
-| 5 | Budget ceiling | ⬜ Using $20/month default |
+| 5 | Budget ceiling | ✅ Using $20/month default (Current cost: $0.00) |
