@@ -86,3 +86,10 @@ Thumbs.db
 
 # ── Makefile temp ─────────────────────────────────────────────────────────────
 .make/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
+*.tfvars.json
