@@ -60,15 +60,34 @@ terraform init -backend-config="bucket=c360-tfstate-alvi"
 terraform plan
 ```
 
-## 5. Apply the Infrastructure (Pending)
-Once the plans are reviewed, we apply them in order (Ingestion first, then Analytics).
+## 5. Apply the Infrastructure
 
+Because these two projects are deeply linked (Analytics creates Service Accounts that Ingestion needs, and Ingestion creates Pub/Sub topics that Analytics needs), we must apply them in a staggered order.
+
+### Step 5a: Apply Analytics to create Service Accounts
+This will fail halfway through (Error 404: Topic not found) because it tries to create Subscriptions for Topics that don't exist yet. That's expected! We just need it to create the Service Accounts first.
 ```bash
-# Apply Ingestion
+cd ../analytics-dev
+terraform apply -auto-approve
+```
+
+### Step 5b: Update Ingestion Variables
+Copy the Service Account emails generated from Step 5a into your Ingestion `terraform.tfvars`:
+```hcl
+analytics_ingestion_sa_email = "analytics-ingestion-sa@commerce360-analytics-dev-alvi.iam.gserviceaccount.com"
+analytics_streaming_sa_email = "analytics-streaming-sa@commerce360-analytics-dev-alvi.iam.gserviceaccount.com"
+```
+
+### Step 5c: Apply Ingestion completely
+This creates the Pub/Sub topics, the Raw GCS bucket, and grants the cross-project permissions to the Analytics Service Accounts.
+```bash
 cd ../ingestion-dev
 terraform apply -auto-approve
+```
 
-# Apply Analytics
+### Step 5d: Finish applying Analytics
+Run apply in Analytics one more time. Now that the Ingestion Pub/Sub topics exist, the Analytics subscriptions will be successfully created and attached to them.
+```bash
 cd ../analytics-dev
 terraform apply -auto-approve
 ```
