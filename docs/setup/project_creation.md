@@ -8,33 +8,32 @@ You can choose to use either the **gcloud CLI (Recommended)** or the **GCP Conso
 
 ## Option 1: Using the gcloud CLI (Recommended & Fastest)
 
-Open your terminal (ensure you are authenticated via `gcloud auth login`) and run these commands.
+Open your terminal. Since `gcloud` is already installed and authenticated as `stocknagraaj2@gmail.com`, run these exact commands:
 
-**1. Set your variables:**
-Choose globally unique project IDs. A good pattern is adding your initials or a random string at the end.
+**1. Create the projects:**
+We use `-stock` as a suffix to make the project IDs globally unique.
 ```bash
-INGESTION_PROJECT="commerce360-ingest-dev-xyz"    # Replace 'xyz' with your unique string
-ANALYTICS_PROJECT="commerce360-analytics-dev-xyz" # Replace 'xyz' with your unique string
+gcloud projects create commerce360-ingest-dev-stock --name="Commerce360 Ingestion Dev"
+gcloud projects create commerce360-analytics-dev-stock --name="Commerce360 Analytics Dev"
 ```
 
-**2. Create the projects:**
-```bash
-gcloud projects create $INGESTION_PROJECT --name="Commerce360 Ingestion Dev"
-gcloud projects create $ANALYTICS_PROJECT --name="Commerce360 Analytics Dev"
-```
-
-**3. Find your Billing Account ID:**
+**2. Find your Billing Account ID:**
 ```bash
 gcloud billing accounts list
 # Note the ACCOUNT_ID from the output (format: XXXXXX-XXXXXX-XXXXXX)
 ```
 
-**4. Link the projects to your Billing Account:**
+**3. Link the projects to your Billing Account:**
+Replace `YOUR_BILLING_ID` with the actual ID from the previous step.
 ```bash
-BILLING_ACCOUNT_ID="XXXXXX-XXXXXX-XXXXXX" # Replace with your actual Billing ID
+gcloud billing projects link commerce360-ingest-dev-stock --billing-account=YOUR_BILLING_ID
+gcloud billing projects link commerce360-analytics-dev-stock --billing-account=YOUR_BILLING_ID
+```
 
-gcloud billing projects link $INGESTION_PROJECT --billing-account=$BILLING_ACCOUNT_ID
-gcloud billing projects link $ANALYTICS_PROJECT --billing-account=$BILLING_ACCOUNT_ID
+**4. Generate Application Default Credentials (ADC)**
+Terraform requires these to authenticate as you. This command will open your browser to log in one more time:
+```bash
+gcloud auth application-default login
 ```
 
 ---
@@ -47,7 +46,7 @@ If you prefer clicking through the browser, follow these steps:
 1. Go to the [GCP Project Selector page](https://console.cloud.google.com/projectselector2/home/dashboard).
 2. Click **Create Project**.
 3. **Project name:** Enter `Commerce360 Ingestion Dev`.
-4. **Project ID:** Click "Edit" below the name and set it to something unique like `commerce360-ingest-dev-xyz`. **(Write this ID down)**.
+4. **Project ID:** Click "Edit" below the name and set it to `commerce360-ingest-dev-stock`.
 5. Select your Billing Account and Organization/Location if prompted.
 6. Click **Create**.
 
@@ -55,7 +54,7 @@ If you prefer clicking through the browser, follow these steps:
 1. Go back to the [GCP Project Selector page](https://console.cloud.google.com/projectselector2/home/dashboard).
 2. Click **Create Project**.
 3. **Project name:** Enter `Commerce360 Analytics Dev`.
-4. **Project ID:** Click "Edit" and set it to something unique like `commerce360-analytics-dev-xyz`. **(Write this ID down)**.
+4. **Project ID:** Click "Edit" and set it to `commerce360-analytics-dev-stock`.
 5. Select your Billing Account.
 6. Click **Create**.
 
@@ -68,4 +67,5 @@ If you prefer clicking through the browser, follow these steps:
 
 ## Next Steps
 
-Once the projects are created, provide the two Project IDs to the agent so they can be injected into the Terraform configurations (`terraform.tfvars`) to proceed with Phase 2.
+Once the projects are created and ADC is generated, we are ready to inject these project IDs into Terraform (`terraform.tfvars`) and proceed with Phase 2 (Foundation Deployment).
+
