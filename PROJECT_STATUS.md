@@ -126,9 +126,15 @@ Platform: win32
 
 ---
 
-## Phase 7 — Pub/Sub Cross-Project Streaming ⬜ NOT STARTED
+## Phase 7 — Pub/Sub Cross-Project Streaming ✅ COMPLETE
 
-**Second cross-project communication exercise.**
+**Completed:** 2026-09-15
+
+**Implementation Details:**
+- Developed `ingestion/streaming/publish_events.py` to push synthetic JSON events to Pub/Sub.
+- Authenticated using the `synthetic-publisher-sa` in Project A to mimic a microservice publisher.
+- Published 1,000 order and clickstream messages to the topics in Project A (`commerce360-ingest-dev-alvi`).
+- Verified that subscriptions hosted in Project B (`commerce360-analytics-dev-alvi`) successfully received the cross-project events, proving IAM and network isolation is working as designed.
 
 ---
 
