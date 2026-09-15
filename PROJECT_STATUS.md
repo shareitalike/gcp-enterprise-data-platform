@@ -87,9 +87,16 @@ Platform: win32
 
 ---
 
-## Phase 4 — Cross-Project GCS Access + BQ Batch Load ⬜ NOT STARTED
+## Phase 4 — Cross-Project GCS Access + BQ Batch Load ✅ COMPLETE
+
+**Completed:** 2026-09-15
 
 **First cross-project IAM exercise.**
+
+**Implementation Details:**
+- Created `ingestion/batch/upload_to_gcs.py` to push synthetic JSON files to `c360-raw-<ingestion_project_id>`.
+- Created `ingestion/batch/load_bronze.py` to load GCS JSON files into BigQuery `bronze` dataset via auto-detect.
+- Confirmed cross-project IAM access by using Service Account Impersonation (`analytics-ingestion-sa`) to execute the BigQuery load step.
 
 ---
 
