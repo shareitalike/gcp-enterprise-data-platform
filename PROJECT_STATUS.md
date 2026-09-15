@@ -100,7 +100,19 @@ Platform: win32
 
 ---
 
-## Phase 5 — BigQuery Bronze/Silver/Gold Modeling ⬜ NOT STARTED
+## Phase 5 — BigQuery Bronze/Silver/Gold Modeling ✅ COMPLETE
+
+**Completed:** 2026-09-15
+
+**Implementation Details:**
+- Created `pipelines/batch/run_sql.py` to orchestrate SQL transformations.
+- Implemented **Silver Layer** (7 models): deduplication, type-casting, and idempotent loading via `MERGE` statements.
+- Implemented **Gold Layer** (7 models): 
+  - `dim_customers` (SCD Type 2)
+  - `dim_products`, `dim_campaigns` (SCD Type 1)
+  - `dim_date` (Static spine)
+  - `fact_orders`, `fact_inventory_daily`, `fact_clickstream` (Insert/Merge logic)
+- Executed pipelines entirely within BigQuery using the `analytics-ingestion-sa` service account.
 
 ---
 
