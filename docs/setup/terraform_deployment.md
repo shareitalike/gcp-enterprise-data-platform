@@ -9,6 +9,12 @@ You must have completed the steps in `project_creation.md` (created projects, li
 Terraform needs a central place to store its state file. We create this bucket in the Ingestion project.
 
 ```bash
+# `gcloud storage buckets create` creates a new Google Cloud Storage (GCS) bucket.
+# `gs://c360-tfstate-alvi` is the globally unique name of the bucket.
+# `--project=...` tells GCP which project owns this bucket.
+# `--location=us-central1` ensures data stays in a specific geographical region.
+# `--uniform-bucket-level-access` forces all access control to use IAM (Identity and Access Management) 
+#   rather than legacy per-file Access Control Lists (ACLs). This is a best practice for security.
 gcloud storage buckets create gs://c360-tfstate-alvi \
   --project=commerce360-ingest-dev-alvi \
   --location=us-central1 \
