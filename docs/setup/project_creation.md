@@ -8,26 +8,20 @@ You can choose to use either the **gcloud CLI (Recommended)** or the **GCP Conso
 
 ## Option 1: Using the gcloud CLI (Recommended & Fastest)
 
-Open your terminal. Since `gcloud` is already installed and authenticated as `stocknagraaj2@gmail.com`, run these exact commands:
+Open your terminal. Since `gcloud` is already installed and authenticated as `alvigeorge2@gmail.com`, run these exact commands:
 
 **1. Create the projects:**
-We use `-stock` as a suffix to make the project IDs globally unique.
+We use `-alvi` as a suffix to make the project IDs globally unique.
 ```bash
-gcloud projects create commerce360-ingest-dev-stock --name="Commerce360 Ingestion Dev"
-gcloud projects create commerce360-analytics-dev-stock --name="Commerce360 Analytics Dev"
+gcloud projects create commerce360-ingest-dev-alvi --name="Commerce360 Ingestion Dev"
+gcloud projects create commerce360-analytics-dev-alvi --name="Commerce360 Analytics Dev"
 ```
 
-**2. Find your Billing Account ID:**
+**2. Link the projects to your Billing Account:**
+Using your active billing account ID (`01C28A-FD425B-861407`).
 ```bash
-gcloud billing accounts list
-# Note the ACCOUNT_ID from the output (format: XXXXXX-XXXXXX-XXXXXX)
-```
-
-**3. Link the projects to your Billing Account:**
-Replace `YOUR_BILLING_ID` with the actual ID from the previous step.
-```bash
-gcloud billing projects link commerce360-ingest-dev-stock --billing-account=YOUR_BILLING_ID
-gcloud billing projects link commerce360-analytics-dev-stock --billing-account=YOUR_BILLING_ID
+gcloud billing projects link commerce360-ingest-dev-alvi --billing-account=01C28A-FD425B-861407
+gcloud billing projects link commerce360-analytics-dev-alvi --billing-account=01C28A-FD425B-861407
 ```
 
 **4. Generate Application Default Credentials (ADC)**
