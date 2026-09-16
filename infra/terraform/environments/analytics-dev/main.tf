@@ -102,10 +102,11 @@ module "bronze" {
 }
 
 resource "google_bigquery_table" "dlq_table" {
-  dataset_id = module.bronze.dataset_id
-  project    = var.analytics_project_id
-  table_id   = "dead_letter_queue"
-  
+  dataset_id          = module.bronze.dataset_id
+  project             = var.analytics_project_id
+  table_id            = "dead_letter_queue"
+  deletion_protection = false
+
   schema = <<EOF
 [
   {
@@ -118,13 +119,19 @@ resource "google_bigquery_table" "dlq_table" {
     "name": "error_message",
     "type": "STRING",
     "mode": "NULLABLE",
-    "description": "The exception message"
+    "description": "The Python exception message that caused the failure"
+  },
+  {
+    "name": "source",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "The pipeline branch that generated this error (e.g. 'orders', 'clickstream')"
   },
   {
     "name": "timestamp",
     "type": "TIMESTAMP",
-    "mode": "NULLABLE",
-    "description": "When the error occurred"
+    "mode": "REQUIRED",
+    "description": "UTC timestamp when the error occurred"
   }
 ]
 EOF

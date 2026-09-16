@@ -2,8 +2,8 @@
 publish_events.py — Simulates microservices publishing real-time events to Pub/Sub.
 
 Usage:
-    export GOOGLE_IMPERSONATE_SERVICE_ACCOUNT="synthetic-publisher-sa@commerce360-ingest-dev-alvi.iam.gserviceaccount.com"
-    python -m ingestion.streaming.publish_events --input-dir data/generated/small --project commerce360-ingest-dev-alvi
+    $env:GOOGLE_IMPERSONATE_SERVICE_ACCOUNT="<YOUR_PUBLISHER_SA_EMAIL>"
+    python -m ingestion.streaming.publish_events --input-dir data/generated/small --project <YOUR_INGESTION_PROJECT_ID>
 """
 import click
 import logging

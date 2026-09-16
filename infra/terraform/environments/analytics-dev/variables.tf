@@ -19,3 +19,8 @@ variable "environment" {
   type        = string
   default     = "dev"
 }
+
+variable "github_repo" {
+  description = "GitHub repository in 'owner/repo' format used to scope WIF access (e.g. 'myuser/gcp-enterprise-data-platform')."
+  type        = string
+}

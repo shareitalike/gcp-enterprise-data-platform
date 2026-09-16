@@ -2,10 +2,6 @@
 # This allows GitHub Actions to securely authenticate as the Analytics Deploy SA
 # without needing to export or store a long-lived JSON service account key.
 
-locals {
-  github_repo = "your-github-username/project_gcp_360" # IMPORTANT: Change this in real life
-}
-
 # 1. Create a Workload Identity Pool
 resource "google_iam_workload_identity_pool" "github_pool" {
   project                   = var.analytics_project_id
@@ -29,7 +25,7 @@ resource "google_iam_workload_identity_pool_provider" "github_provider" {
   }
   
   # Ensure only our specific repository can use this provider
-  attribute_condition = "assertion.repository == '${local.github_repo}'"
+  attribute_condition = "assertion.repository == '${var.github_repo}'"
 
   oidc {
     issuer_uri = "https://token.actions.githubusercontent.com"
@@ -40,7 +36,7 @@ resource "google_iam_workload_identity_pool_provider" "github_provider" {
 resource "google_service_account_iam_member" "github_actions_sa_binding" {
   service_account_id = module.deploy_sa.name
   role               = "roles/iam.workloadIdentityUser"
-  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github_pool.name}/attribute.repository/${local.github_repo}"
+  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github_pool.name}/attribute.repository/${var.github_repo}"
 }
 
 # Output the exact string you need to put into GitHub Secrets

@@ -16,20 +16,34 @@ import apache_beam as beam
 from apache_beam.options.pipeline_options import PipelineOptions, StandardOptions, GoogleCloudOptions
 
 class ParseJson(beam.DoFn):
-    """Parses the raw Pub/Sub bytes into a Python dictionary."""
+    """Parses the raw Pub/Sub bytes into a Python dictionary.
+    
+    Yields:
+        main: Successfully parsed dict records.
+        dead_letter: Dict with payload, error, source, and timestamp for failed records.
+    """
+    def __init__(self, source_name: str):
+        """Args:
+            source_name: Label for the data source (e.g. 'orders', 'clickstream').
+                         Used to tag DLQ records so engineers know which branch failed.
+        """
+        self.source_name = source_name
+
     def process(self, element):
         try:
             # element is bytes in Python 3 for Pub/Sub messages
             record = json.loads(element.decode('utf-8'))
             yield record
-        except Exception as e:
-            logging.error(f"Failed to parse JSON: {e}, payload: {element}")
-            # Yield to the Dead Letter Queue
+        except (json.JSONDecodeError, UnicodeDecodeError) as e:
+            # Catch only known parsing errors — do NOT swallow unexpected errors
+            # like MemoryError or SystemExit which indicate pipeline health issues.
+            logging.error(f"[{self.source_name}] Failed to parse JSON: {e}, payload: {element}")
             yield beam.pvalue.TaggedOutput(
                 'dead_letter',
                 {
                     "payload": str(element),
                     "error_message": str(e),
+                    "source": self.source_name,
                     "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat()
                 }
             )
@@ -69,7 +83,7 @@ def run(argv=None):
         orders_parsed = (
             p
             | "Read Orders from PubSub" >> beam.io.ReadFromPubSub(subscription=orders_sub)
-            | "Parse Orders JSON" >> beam.ParDo(ParseJson()).with_outputs('dead_letter', main='main')
+            | "Parse Orders JSON" >> beam.ParDo(ParseJson(source_name='orders')).with_outputs('dead_letter', main='main')
         )
         
         # Write good records
@@ -94,7 +108,7 @@ def run(argv=None):
         clickstream_parsed = (
             p
             | "Read Clickstream from PubSub" >> beam.io.ReadFromPubSub(subscription=clickstream_sub)
-            | "Parse Clickstream JSON" >> beam.ParDo(ParseJson()).with_outputs('dead_letter', main='main')
+            | "Parse Clickstream JSON" >> beam.ParDo(ParseJson(source_name='clickstream')).with_outputs('dead_letter', main='main')
         )
         
         # Write good records

@@ -15,7 +15,7 @@ resource "google_bigquery_dataset" "this" {
 
   # Prevent accidental deletion of datasets containing data
   lifecycle {
-    prevent_destroy = false   # set to true in production environments
+    prevent_destroy = true
   }
 }
 
