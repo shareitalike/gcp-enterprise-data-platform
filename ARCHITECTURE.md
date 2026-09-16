@@ -33,7 +33,7 @@ graph TD
     %% Happy Paths
     DF_STREAM -->|Writes Valid Data| BQ_BRONZE
     
-    GCS_RAW ==>|Cross-Project Read (Batch)| BQ_BRONZE
+    GCS_RAW ==>|Cross-Project Read - Batch| BQ_BRONZE
     BQ_BRONZE -->|Idempotent MERGE| BQ_SILVER
     BQ_SILVER -->|Aggregations & Dimensions| BQ_GOLD
 
