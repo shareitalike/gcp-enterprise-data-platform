@@ -268,11 +268,46 @@ resource "google_pubsub_subscription" "clickstream_sub" {
   depends_on = [google_project_service.apis, google_pubsub_topic.dlq]
 }
 
-# ── Analytics DLQ Topic ───────────────────────────────────────────────────────
+# ── Analytics DLQ Topic & IAM ──────────────────────────────────────────────────
 resource "google_pubsub_topic" "dlq" {
   project = var.analytics_project_id
   name    = "dlq-analytics-dev"
   labels  = local.labels
+}
+
+resource "google_pubsub_subscription" "dlq_sub" {
+  project = var.analytics_project_id
+  name    = "dlq-analytics-dev-sub"
+  topic   = google_pubsub_topic.dlq.name
+  labels  = local.labels
+}
+
+# Get project number for the system service account
+data "google_project" "analytics" {
+  project_id = var.analytics_project_id
+}
+
+# Grant Pub/Sub system account permission to publish to the DLQ
+resource "google_pubsub_topic_iam_member" "dlq_publisher" {
+  project = var.analytics_project_id
+  topic   = google_pubsub_topic.dlq.name
+  role    = "roles/pubsub.publisher"
+  member  = "serviceAccount:service-${data.google_project.analytics.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
+}
+
+# Grant Pub/Sub system account permission to subscribe to the original subscriptions
+resource "google_pubsub_subscription_iam_member" "orders_dlq_subscriber" {
+  project      = var.analytics_project_id
+  subscription = google_pubsub_subscription.orders_sub.name
+  role         = "roles/pubsub.subscriber"
+  member       = "serviceAccount:service-${data.google_project.analytics.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
+}
+
+resource "google_pubsub_subscription_iam_member" "clickstream_dlq_subscriber" {
+  project      = var.analytics_project_id
+  subscription = google_pubsub_subscription.clickstream_sub.name
+  role         = "roles/pubsub.subscriber"
+  member       = "serviceAccount:service-${data.google_project.analytics.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
 }
 
 # ── Outputs (used by ingestion-dev tfvars) ─────────────────────────────────────
