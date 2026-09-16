@@ -1,5 +1,53 @@
 # Architecture — GCP Commerce360
 
+## Visual Architecture Diagram
+
+```mermaid
+graph TD
+    subgraph "Project A: Ingestion (commerce360-ingest-dev)"
+        GCS_RAW[("☁️ GCS Raw Data Bucket")]
+        PS_TOPIC["📡 Pub/Sub Topic"]
+        SA_PUB("🤖 Publisher Service Account")
+    end
+
+    subgraph "Project B: Analytics (commerce360-analytics-dev)"
+        PS_SUB["📥 Pub/Sub Subscription"]
+        PS_DLQ["🗑️ Pub/Sub DLQ Topic"]
+        DF_STREAM["⚙️ Dataflow (Apache Beam)"]
+        BQ_BRONZE[("🥉 BigQuery Bronze (Raw)")]
+        BQ_SILVER[("🥈 BigQuery Silver (Clean)")]
+        BQ_GOLD[("🥇 BigQuery Gold (Business)")]
+        BQ_DLQ_TAB[("🚨 BigQuery DLQ Table")]
+    end
+
+    SA_PUB -.->|Publishes JSON| PS_TOPIC
+    PS_TOPIC ==>|Cross-Project Pull| PS_SUB
+    PS_SUB -->|Consumed by| DF_STREAM
+    
+    %% Application DLQ Path
+    DF_STREAM -.->|Exception Caught| BQ_DLQ_TAB
+    
+    %% Infrastructure DLQ Path
+    PS_SUB -.->|Fails to Ack 5 times| PS_DLQ
+    
+    %% Happy Paths
+    DF_STREAM -->|Writes Valid Data| BQ_BRONZE
+    
+    GCS_RAW ==>|Cross-Project Read (Batch)| BQ_BRONZE
+    BQ_BRONZE -->|Idempotent MERGE| BQ_SILVER
+    BQ_SILVER -->|Aggregations & Dimensions| BQ_GOLD
+
+    %% Styling
+    classDef gcp fill:#4285f4,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef bq fill:#34a853,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef sa fill:#fbbc05,stroke:#fff,stroke-width:2px,color:#000;
+    classDef warning fill:#ea4335,stroke:#fff,stroke-width:2px,color:#fff;
+    
+    class PS_TOPIC,PS_SUB,DF_STREAM gcp;
+    class BQ_BRONZE,BQ_SILVER,BQ_GOLD bq;
+    class SA_PUB sa;
+    class PS_DLQ,BQ_DLQ_TAB warning;
+```
 ## Two-Project Design
 
 ```
