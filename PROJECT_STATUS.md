@@ -175,7 +175,13 @@ Platform: win32
 
 ---
 
-## Phase 12 — Security + CI/CD Hardening ⬜ NOT STARTED
+## Phase 12 — Security + CI/CD Hardening ✅ COMPLETE
+
+**Completed:** 2026-09-16
+**Implementation Details:**
+- Defined Workload Identity Federation (WIF) pool and provider via Terraform to secure CI/CD access.
+- Created `.github/workflows/terraform-ci.yml` (Checkov scanning, formatting, planning).
+- Created `.github/workflows/python-ci.yml` (Ruff linting, PyTest).
 
 ---
 
