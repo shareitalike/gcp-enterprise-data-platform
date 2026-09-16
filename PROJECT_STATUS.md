@@ -138,11 +138,23 @@ Platform: win32
 
 ---
 
-## Phase 8 — Dataflow Streaming Pipeline ⬜ NOT STARTED
+## Phase 8 — Dataflow Streaming Pipeline ✅ COMPLETE
+
+**Completed:** 2026-09-16
+**Implementation Details:**
+- Developed Apache Beam pipeline (`dataflow_pipeline.py`)
+- Configured local execution via `DirectRunner` with ADC impersonation.
+- Real-time sink to BigQuery bronze tables verified.
 
 ---
 
-## Phase 9 — Service Account Impersonation + WIF ⬜ NOT STARTED
+## Phase 9 — Service Account Impersonation + WIF ✅ COMPLETE
+
+**Completed:** 2026-09-16
+**Implementation Details:**
+- Defined the local vs production authentication strategy.
+- Created `IMPERSONATION_VS_WORKLOAD_IDENTITY.md` in the external interview prep folder.
+- Demonstrated least-privilege security model by forcing terminal impersonation of streaming service accounts.
 
 ---
 
