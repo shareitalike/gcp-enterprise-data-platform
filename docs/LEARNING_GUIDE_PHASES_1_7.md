@@ -32,6 +32,43 @@ gcloud services enable bigquery.googleapis.com storage.googleapis.com pubsub.goo
 
 ---
 
+## 1.5 IAM and Service Accounts (Phase 2)
+In enterprise GCP environments, pipelines don't run using personal `@gmail.com` accounts. Instead, they use **Service Accounts** (robot accounts) that are granted only the exact permissions they need (Principle of Least Privilege).
+
+**What we did:**
+- Created Service Accounts in each project (e.g. `synthetic-publisher-sa` in the Ingestion project).
+- Granted them project-level roles (e.g. `roles/pubsub.publisher`).
+
+### 🖥️ CLI Approach:
+```bash
+# Create the service account
+gcloud iam service-accounts create synthetic-publisher-sa \
+    --description="Publishes events" \
+    --display-name="Synthetic Publisher" \
+    --project=commerce360-ingest-dev-alvi
+
+# Grant the service account the Publisher role
+gcloud projects add-iam-policy-binding commerce360-ingest-dev-alvi \
+    --member="serviceAccount:synthetic-publisher-sa@commerce360-ingest-dev-alvi.iam.gserviceaccount.com" \
+    --role="roles/pubsub.publisher"
+```
+
+### 🖱️ GUI Approach:
+**To create a Service Account:**
+1. Open GCP Console, go to **IAM & Admin** -> **Service Accounts**.
+2. Click **+ CREATE SERVICE ACCOUNT**.
+3. Name it (e.g. `synthetic-publisher-sa`) and optionally describe what it does. Click **Create and Continue**.
+4. Skip the role assignment here (we'll do it centrally in IAM). Click **Done**.
+
+**To grant permissions (IAM Roles):**
+1. Go to **IAM & Admin** -> **IAM**.
+2. Click **+ GRANT ACCESS**.
+3. In "New principals", type the email address of the service account you just created.
+4. In "Select a role", search for and select **Pub/Sub Publisher**.
+5. Click **Save**.
+
+---
+
 ## 2. Infrastructure as Code / Terraform (Phase 2)
 Instead of clicking through the UI to create buckets and datasets, we used **Terraform**. This is a massive selling point in interviews because it shows you understand **DevOps/GitOps best practices** (reproducibility, version control, and infrastructure automation).
 
