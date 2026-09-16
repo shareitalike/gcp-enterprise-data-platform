@@ -101,6 +101,37 @@ module "bronze" {
   depends_on = [google_project_service.apis]
 }
 
+resource "google_bigquery_table" "dlq_table" {
+  dataset_id = module.bronze.dataset_id
+  project    = var.analytics_project_id
+  table_id   = "dead_letter_queue"
+  
+  schema = <<EOF
+[
+  {
+    "name": "payload",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "The raw bad data payload"
+  },
+  {
+    "name": "error_message",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "The exception message"
+  },
+  {
+    "name": "timestamp",
+    "type": "TIMESTAMP",
+    "mode": "NULLABLE",
+    "description": "When the error occurred"
+  }
+]
+EOF
+
+  depends_on = [module.bronze]
+}
+
 module "silver" {
   source      = "../../modules/bigquery_dataset"
   project_id  = var.analytics_project_id

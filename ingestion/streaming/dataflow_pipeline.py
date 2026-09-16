@@ -10,6 +10,7 @@ Usage (Local Execution):
 
 import argparse
 import json
+import datetime
 import logging
 import apache_beam as beam
 from apache_beam.options.pipeline_options import PipelineOptions, StandardOptions, GoogleCloudOptions
@@ -23,8 +24,15 @@ class ParseJson(beam.DoFn):
             yield record
         except Exception as e:
             logging.error(f"Failed to parse JSON: {e}, payload: {element}")
-            # In a production pipeline, we would yield this to a Dead Letter Queue (DLQ)
-            # but for now, we just drop bad records so the pipeline doesn't crash.
+            # Yield to the Dead Letter Queue
+            yield beam.pvalue.TaggedOutput(
+                'dead_letter',
+                {
+                    "payload": str(element),
+                    "error_message": str(e),
+                    "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat()
+                }
+            )
 
 def run(argv=None):
     parser = argparse.ArgumentParser()
@@ -50,37 +58,59 @@ def run(argv=None):
     orders_table = f"{project_id}:bronze.orders"
     clickstream_table = f"{project_id}:bronze.clickstream_events"
 
+    dlq_table = f"{project_id}:bronze.dead_letter_queue"
+
     # Start the Beam Pipeline
     with beam.Pipeline(options=options) as p:
         
         # ==========================================
         # BRANCH 1: Orders Pipeline
         # ==========================================
-        (
+        orders_parsed = (
             p
             | "Read Orders from PubSub" >> beam.io.ReadFromPubSub(subscription=orders_sub)
-            | "Parse Orders JSON" >> beam.ParDo(ParseJson())
-            | "Write Orders to BQ" >> beam.io.WriteToBigQuery(
-                table=orders_table,
-                create_disposition=beam.io.BigQueryDisposition.CREATE_NEVER,
-                write_disposition=beam.io.BigQueryDisposition.WRITE_APPEND,
-                insert_retry_strategy=beam.io.gcp.bigquery_tools.RetryStrategy.RETRY_ON_TRANSIENT_ERROR
-            )
+            | "Parse Orders JSON" >> beam.ParDo(ParseJson()).with_outputs('dead_letter', main='main')
+        )
+        
+        # Write good records
+        orders_parsed.main | "Write Orders to BQ" >> beam.io.WriteToBigQuery(
+            table=orders_table,
+            create_disposition=beam.io.BigQueryDisposition.CREATE_NEVER,
+            write_disposition=beam.io.BigQueryDisposition.WRITE_APPEND,
+            insert_retry_strategy=beam.io.gcp.bigquery_tools.RetryStrategy.RETRY_ON_TRANSIENT_ERROR
+        )
+        
+        # Write bad records to DLQ
+        orders_parsed.dead_letter | "Write Orders DLQ to BQ" >> beam.io.WriteToBigQuery(
+            table=dlq_table,
+            create_disposition=beam.io.BigQueryDisposition.CREATE_NEVER,
+            write_disposition=beam.io.BigQueryDisposition.WRITE_APPEND,
+            insert_retry_strategy=beam.io.gcp.bigquery_tools.RetryStrategy.RETRY_ON_TRANSIENT_ERROR
         )
 
         # ==========================================
         # BRANCH 2: Clickstream Pipeline
         # ==========================================
-        (
+        clickstream_parsed = (
             p
             | "Read Clickstream from PubSub" >> beam.io.ReadFromPubSub(subscription=clickstream_sub)
-            | "Parse Clickstream JSON" >> beam.ParDo(ParseJson())
-            | "Write Clickstream to BQ" >> beam.io.WriteToBigQuery(
-                table=clickstream_table,
-                create_disposition=beam.io.BigQueryDisposition.CREATE_NEVER,
-                write_disposition=beam.io.BigQueryDisposition.WRITE_APPEND,
-                insert_retry_strategy=beam.io.gcp.bigquery_tools.RetryStrategy.RETRY_ON_TRANSIENT_ERROR
-            )
+            | "Parse Clickstream JSON" >> beam.ParDo(ParseJson()).with_outputs('dead_letter', main='main')
+        )
+        
+        # Write good records
+        clickstream_parsed.main | "Write Clickstream to BQ" >> beam.io.WriteToBigQuery(
+            table=clickstream_table,
+            create_disposition=beam.io.BigQueryDisposition.CREATE_NEVER,
+            write_disposition=beam.io.BigQueryDisposition.WRITE_APPEND,
+            insert_retry_strategy=beam.io.gcp.bigquery_tools.RetryStrategy.RETRY_ON_TRANSIENT_ERROR
+        )
+        
+        # Write bad records to DLQ
+        clickstream_parsed.dead_letter | "Write Clickstream DLQ to BQ" >> beam.io.WriteToBigQuery(
+            table=dlq_table,
+            create_disposition=beam.io.BigQueryDisposition.CREATE_NEVER,
+            write_disposition=beam.io.BigQueryDisposition.WRITE_APPEND,
+            insert_retry_strategy=beam.io.gcp.bigquery_tools.RetryStrategy.RETRY_ON_TRANSIENT_ERROR
         )
 
 if __name__ == '__main__':

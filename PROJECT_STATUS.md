@@ -164,7 +164,14 @@ Platform: win32
 
 ---
 
-## Phase 11 — Observability + Failure Simulations ⬜ NOT STARTED
+## Phase 11 — Observability + Failure Simulations ✅ COMPLETE
+
+**Completed:** 2026-09-16
+**Implementation Details:**
+- Designed a two-tiered DLQ approach (Pub/Sub Native + Application DLQ).
+- Implemented Tagged Outputs in `dataflow_pipeline.py` to route parse failures gracefully.
+- Created `dlq_table` using Terraform in the Analytics project.
+- Simulated pipeline failure via `publish_bad_events.py` and successfully captured exceptions and payloads in BigQuery without crashing the stream.
 
 ---
 
