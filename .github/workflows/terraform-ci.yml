@@ -1,0 +1,56 @@
+name: 'Terraform CI/CD'
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    paths:
+      - 'infra/terraform/**'
+
+jobs:
+  terraform:
+    name: 'Terraform Plan & Security Scan'
+    runs-on: ubuntu-latest
+
+    # These permissions are required for Workload Identity Federation
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Authenticate to Google Cloud via WIF
+      uses: google-github-actions/auth@v2
+      with:
+        workload_identity_provider: '${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}'
+        service_account: '${{ secrets.GCP_DEPLOY_SERVICE_ACCOUNT }}'
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.8.0
+
+    - name: Terraform Format Check
+      run: terraform fmt -check -recursive infra/terraform
+
+    - name: Run Checkov Security Scan
+      uses: bridgecrewio/checkov-action@master
+      with:
+        directory: infra/terraform
+        framework: terraform
+        quiet: true
+
+    - name: Terraform Init (Analytics Dev)
+      run: terraform init
+      working-directory: infra/terraform/environments/analytics-dev
+
+    - name: Terraform Validate
+      run: terraform validate
+      working-directory: infra/terraform/environments/analytics-dev
+
+    - name: Terraform Plan
+      run: terraform plan -var-file="terraform.tfvars"
+      working-directory: infra/terraform/environments/analytics-dev
