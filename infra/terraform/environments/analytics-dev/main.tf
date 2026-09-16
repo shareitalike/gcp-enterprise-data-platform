@@ -139,6 +139,50 @@ EOF
   depends_on = [module.bronze]
 }
 
+# Clickstream window summary: one row per 60-second window
+resource "google_bigquery_table" "clickstream_window_summary" {
+  dataset_id          = module.bronze.dataset_id
+  project             = var.analytics_project_id
+  table_id            = "clickstream_window_summary"
+  deletion_protection = false
+
+  time_partitioning {
+    type  = "DAY"
+    field = "window_start"
+  }
+
+  schema = <<EOF
+[
+  {
+    "name": "window_start",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED",
+    "description": "Event-time start of the 60-second window"
+  },
+  {
+    "name": "window_end",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED",
+    "description": "Event-time end of the 60-second window"
+  },
+  {
+    "name": "event_count",
+    "type": "INTEGER",
+    "mode": "REQUIRED",
+    "description": "Number of clickstream events in this window"
+  },
+  {
+    "name": "computed_at",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED",
+    "description": "Processing-time when this aggregate was computed"
+  }
+]
+EOF
+
+  depends_on = [module.bronze]
+}
+
 module "silver" {
   source      = "../../modules/bigquery_dataset"
   project_id  = var.analytics_project_id

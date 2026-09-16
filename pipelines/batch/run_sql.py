@@ -40,8 +40,9 @@ EXECUTION_ORDER = SILVER_SCRIPTS + GOLD_SCRIPTS
 
 @click.command()
 @click.option("--project", required=True, help="Target BigQuery Project ID (Analytics).")
-def main(project: str):
-    """Execute BigQuery SQL models in topological order."""
+@click.option("--skip-quality", is_flag=True, default=False, help="Skip data quality checks (use for debugging only).")
+def main(project: str, skip_quality: bool):
+    """Execute BigQuery SQL models in topological order, then run data quality checks."""
     client = bigquery.Client(project=project)
     
     base_dir = Path(__file__).parent.parent / "sql"
@@ -75,6 +76,76 @@ def main(project: str):
             raise click.Abort()
             
     logger.info("All SQL models executed successfully!")
+
+    # ── Run automated data quality checks after every pipeline run ────────────
+    # This ensures data quality is enforced automatically, not left to manual runs.
+    if skip_quality:
+        logger.warning("Skipping data quality checks (--skip-quality flag set).")
+        return
+
+    logger.info("=" * 60)
+    logger.info("Running post-pipeline data quality checks...")
+    logger.info("=" * 60)
+    _run_post_pipeline_quality_checks(client, project)
+
+
+def _run_post_pipeline_quality_checks(client: bigquery.Client, project: str) -> None:
+    """Run BigQuery-native data quality checks after pipeline completion.
+    
+    Uses SQL to perform checks directly in BigQuery (no data movement).
+    Results are logged. CRITICAL failures raise RuntimeError to fail the pipeline.
+    """
+    checks = [
+        # Check 1: Ensure silver.orders has no null order_ids (critical integrity check)
+        {
+            "name": "silver_orders_no_null_order_id",
+            "severity": "CRITICAL",
+            "sql": f"SELECT COUNT(*) as failed FROM `{project}.silver.orders` WHERE order_id IS NULL",
+        },
+        # Check 2: Ensure gold.fact_orders has no negative amounts
+        {
+            "name": "gold_fact_orders_no_negative_amounts",
+            "severity": "HIGH",
+            "sql": f"SELECT COUNT(*) as failed FROM `{project}.gold.fact_orders` WHERE total_amount < 0",
+        },
+        # Check 3: Freshness check — ensure data was loaded in the last 24 hours
+        {
+            "name": "bronze_orders_freshness_24h",
+            "severity": "MEDIUM",
+            "sql": f"""
+                SELECT CASE WHEN MAX(order_date) < DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY)
+                THEN 1 ELSE 0 END as failed
+                FROM `{project}.silver.orders`
+            """,
+        },
+    ]
+
+    all_passed = True
+    for check in checks:
+        try:
+            result = list(client.query(check["sql"]).result())
+            failed_count = result[0]["failed"] if result else 0
+
+            if failed_count == 0:
+                logger.info(f"  ✅ PASSED  [{check['severity']}] {check['name']}")
+            else:
+                logger.error(f"  ❌ FAILED  [{check['severity']}] {check['name']} — {failed_count} violations")
+                all_passed = False
+                if check["severity"] == "CRITICAL":
+                    raise RuntimeError(
+                        f"CRITICAL data quality check failed: {check['name']}. "
+                        f"{failed_count} records violated the constraint."
+                    )
+        except RuntimeError:
+            raise
+        except Exception as e:
+            logger.error(f"  ⚠️  ERROR running check '{check['name']}': {e}")
+
+    if all_passed:
+        logger.info("All data quality checks passed!")
+    else:
+        logger.warning("Some data quality checks failed. Review logs above.")
+
 
 if __name__ == "__main__":
     main()

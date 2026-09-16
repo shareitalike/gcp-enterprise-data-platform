@@ -24,3 +24,8 @@ variable "github_repo" {
   description = "GitHub repository in 'owner/repo' format used to scope WIF access (e.g. 'myuser/gcp-enterprise-data-platform')."
   type        = string
 }
+
+variable "alert_email" {
+  description = "Email address to receive Cloud Monitoring alert notifications."
+  type        = string
+}
