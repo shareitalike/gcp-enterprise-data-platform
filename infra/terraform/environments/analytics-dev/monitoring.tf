@@ -39,12 +39,6 @@ resource "google_monitoring_alert_policy" "dlq_messages_aging" {
 
   notification_channels = [google_monitoring_notification_channel.email.name]
 
-  alert_strategy {
-    notification_rate_limit {
-      period = "3600s" # Only alert once per hour max
-    }
-  }
-
   documentation {
     content   = "Messages are sitting in the Pub/Sub DLQ. Check the BigQuery `dead_letter_queue` table and `dataflow_pipeline.py` logs."
     mime_type = "text/markdown"
