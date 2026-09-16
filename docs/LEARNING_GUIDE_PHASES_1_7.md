@@ -33,19 +33,48 @@ gcloud services enable bigquery.googleapis.com storage.googleapis.com pubsub.goo
 ---
 
 ## 2. Infrastructure as Code / Terraform (Phase 2)
-Instead of clicking through the UI to create buckets and datasets, we used Terraform. This is a massive selling point in interviews (it shows you know DevOps/GitOps best practices).
+Instead of clicking through the UI to create buckets and datasets, we used **Terraform**. This is a massive selling point in interviews because it shows you understand **DevOps/GitOps best practices** (reproducibility, version control, and infrastructure automation).
 
-**What we did:**
-- Ran `terraform apply` to create the GCS Raw Bucket and Pub/Sub topics in the Ingestion project.
-- Ran `terraform apply` to create BigQuery datasets (`bronze`, `silver`, `gold`) and Subscriptions in the Analytics project.
-- Created cross-project IAM bindings (e.g. giving Analytics Service Accounts permission to read from Ingestion buckets).
+Our Terraform code is split into two environments to match our two projects:
+1. `infra/terraform/environments/ingestion-dev`
+2. `infra/terraform/environments/analytics-dev`
+
+**The "Chicken and Egg" Problem & How We Solved It:**
+We had a dependency loop: The Analytics project needs to subscribe to Pub/Sub topics that exist in the Ingestion project. But the Ingestion project needs to grant IAM access to a Service Account that exists in the Analytics project. 
+
+Here is exactly what we ran, and why:
 
 ### 🖥️ CLI Approach:
+
+**Step 1: Create the base Ingestion infrastructure**
 ```bash
 cd infra/terraform/environments/ingestion-dev
 terraform init
 terraform apply -auto-approve
 ```
+*What happens here?* Terraform talks to the GCP API and creates the `c360-raw-...` Cloud Storage bucket, the `synthetic-publisher-sa` service account, and the `orders-created` / `clickstream-events` Pub/Sub topics in Project A.
+
+**Step 2: Create the Analytics infrastructure**
+```bash
+cd ../analytics-dev
+terraform init
+terraform apply -auto-approve
+```
+*What happens here?* Terraform creates the BigQuery datasets (`bronze`, `silver`, `gold`), the `analytics-ingestion-sa` and `analytics-streaming-sa` service accounts, and the Pub/Sub Subscriptions in Project B. Crucially, it links those subscriptions to the topics we created in Step 1.
+
+**Step 3: Close the loop (Cross-Project IAM)**
+```bash
+cd ../ingestion-dev
+# We updated the terraform.tfvars file here to paste in the emails of the 
+# Service Accounts created in Step 2.
+terraform apply -auto-approve
+```
+*What happens here?* Terraform runs again in Project A. It sees the new Service Account emails and attaches IAM policies granting Project B's `analytics-ingestion-sa` the `Storage Object Viewer` role on the GCS bucket, and `analytics-streaming-sa` the `Pub/Sub Subscriber` role on the topics.
+
+### 🖱️ GUI Approach (How to verify it worked):
+1. Go to **IAM & Admin** -> **IAM** in the `commerce360-ingest-dev-alvi` project.
+2. Check the box for **"Include Google-provided role grants"** or look at the principals list.
+3. You will actually see the `analytics-ingestion-sa@commerce360-analytics-dev-alvi...` service account listed there with the **Storage Object Viewer** role, proving that cross-project access was successfully granted!
 
 ---
 
