@@ -93,3 +93,4 @@ Thumbs.db
 *.tfstate.backup
 *.tfvars
 *.tfvars.json
+*interview*

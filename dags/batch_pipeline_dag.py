@@ -56,8 +56,8 @@ GCP_CONN_ID = "google_cloud_default"   # Auto-configured in Cloud Composer
 
 
 def _read_sql(relative_path: str) -> str:
-    """Read a SQL file from pipelines/sql/ and return as a string."""
-    base = Path(__file__).parent.parent / "pipelines" / "sql"
+    """Read a SQL file from dags/sql/ and return as a string."""
+    base = Path(__file__).parent / "sql"
     return (base / relative_path).read_text()
 
 
